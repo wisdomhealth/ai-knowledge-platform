@@ -19,8 +19,18 @@ depends_on: str | Sequence[str] | None = None
 
 def timestamps() -> list[sa.Column]:
     return [
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
     ]
 
 
@@ -113,7 +123,12 @@ def upgrade() -> None:
         sa.Column("conversation_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("role", sa.String(length=40), nullable=False),
         sa.Column("content", sa.Text(), nullable=False),
-        sa.Column("tool_calls", postgresql.JSONB(astext_type=sa.Text()), server_default=sa.text("'[]'::jsonb"), nullable=False),
+        sa.Column(
+            "tool_calls",
+            postgresql.JSONB(astext_type=sa.Text()),
+            server_default=sa.text("'[]'::jsonb"),
+            nullable=False,
+        ),
         sa.Column("token_count", sa.Integer(), nullable=True),
         *timestamps(),
         sa.ForeignKeyConstraint(["conversation_id"], ["conversations.id"], ondelete="CASCADE"),
@@ -128,9 +143,24 @@ def upgrade() -> None:
         sa.Column("agent_type", sa.String(length=80), nullable=False),
         sa.Column("status", sa.String(length=40), server_default="pending", nullable=False),
         sa.Column("goal", sa.Text(), nullable=True),
-        sa.Column("input", postgresql.JSONB(astext_type=sa.Text()), server_default=sa.text("'{}'::jsonb"), nullable=False),
-        sa.Column("output", postgresql.JSONB(astext_type=sa.Text()), server_default=sa.text("'{}'::jsonb"), nullable=False),
-        sa.Column("trace", postgresql.JSONB(astext_type=sa.Text()), server_default=sa.text("'[]'::jsonb"), nullable=False),
+        sa.Column(
+            "input",
+            postgresql.JSONB(astext_type=sa.Text()),
+            server_default=sa.text("'{}'::jsonb"),
+            nullable=False,
+        ),
+        sa.Column(
+            "output",
+            postgresql.JSONB(astext_type=sa.Text()),
+            server_default=sa.text("'{}'::jsonb"),
+            nullable=False,
+        ),
+        sa.Column(
+            "trace",
+            postgresql.JSONB(astext_type=sa.Text()),
+            server_default=sa.text("'[]'::jsonb"),
+            nullable=False,
+        ),
         sa.Column("started_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("completed_at", sa.DateTime(timezone=True), nullable=True),
         *timestamps(),
@@ -145,8 +175,18 @@ def upgrade() -> None:
         uuid_pk(),
         sa.Column("agent_run_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("tool_name", sa.String(length=120), nullable=False),
-        sa.Column("arguments", postgresql.JSONB(astext_type=sa.Text()), server_default=sa.text("'{}'::jsonb"), nullable=False),
-        sa.Column("result", postgresql.JSONB(astext_type=sa.Text()), server_default=sa.text("'{}'::jsonb"), nullable=False),
+        sa.Column(
+            "arguments",
+            postgresql.JSONB(astext_type=sa.Text()),
+            server_default=sa.text("'{}'::jsonb"),
+            nullable=False,
+        ),
+        sa.Column(
+            "result",
+            postgresql.JSONB(astext_type=sa.Text()),
+            server_default=sa.text("'{}'::jsonb"),
+            nullable=False,
+        ),
         sa.Column("status", sa.String(length=40), server_default="pending", nullable=False),
         sa.Column("error", sa.Text(), nullable=True),
         sa.Column("started_at", sa.DateTime(timezone=True), nullable=True),
@@ -213,14 +253,23 @@ def upgrade() -> None:
         sa.Column("owner_id", postgresql.UUID(as_uuid=True), nullable=True),
         sa.Column("account_id", sa.String(length=255), nullable=True),
         sa.Column("secret_ref", sa.String(length=500), nullable=False),
-        sa.Column("scopes", postgresql.JSONB(astext_type=sa.Text()), server_default=sa.text("'[]'::jsonb"), nullable=False),
+        sa.Column(
+            "scopes",
+            postgresql.JSONB(astext_type=sa.Text()),
+            server_default=sa.text("'[]'::jsonb"),
+            nullable=False,
+        ),
         metadata_column(),
         *timestamps(),
         sa.ForeignKeyConstraint(["owner_id"], ["users.id"], ondelete="SET NULL"),
     )
     op.create_index("ix_integration_credentials_provider", "integration_credentials", ["provider"])
     op.create_index("ix_integration_credentials_owner_id", "integration_credentials", ["owner_id"])
-    op.create_index("ix_integration_credentials_account_id", "integration_credentials", ["account_id"])
+    op.create_index(
+        "ix_integration_credentials_account_id",
+        "integration_credentials",
+        ["account_id"],
+    )
 
 
 def downgrade() -> None:

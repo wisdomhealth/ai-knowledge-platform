@@ -22,7 +22,11 @@ class WebScraperClient:
     async def scrape(self, url: str) -> ScrapedContent:
         headers = {"User-Agent": self.settings.scraper_user_agent}
         timeout = httpx.Timeout(self.settings.scraper_timeout_seconds)
-        async with httpx.AsyncClient(follow_redirects=True, timeout=timeout, headers=headers) as client:
+        async with httpx.AsyncClient(
+            follow_redirects=True,
+            timeout=timeout,
+            headers=headers,
+        ) as client:
             response = await client.get(url)
             response.raise_for_status()
 

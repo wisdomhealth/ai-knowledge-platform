@@ -1,7 +1,7 @@
 [project]
 name = "ai-knowledge-platform"
 version = "0.1.0"
-description = "Production-ready AI backend platform with RAG, workflow agents, PostgreSQL, Google Workspace, web scraping, and voice integrations."
+description = "Production-ready AI backend platform for RAG, agents, integrations, and voice."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [

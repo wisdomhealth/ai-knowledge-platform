@@ -23,7 +23,12 @@ class AgentRun(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     status: Mapped[str] = mapped_column(String(40), index=True, nullable=False, default="pending")
     goal: Mapped[str | None] = mapped_column(Text)
     input_json: Mapped[dict[str, Any]] = mapped_column("input", JSONB, default=dict, nullable=False)
-    output_json: Mapped[dict[str, Any]] = mapped_column("output", JSONB, default=dict, nullable=False)
+    output_json: Mapped[dict[str, Any]] = mapped_column(
+        "output",
+        JSONB,
+        default=dict,
+        nullable=False,
+    )
     trace: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, default=list, nullable=False)
     started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

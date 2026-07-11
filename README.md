@@ -21,8 +21,9 @@ production pieces: PostgreSQL, SQLAlchemy, Alembic, Google Sheets, scraping,
 conversation and workflow agents, tool calling, persistent memory, Twilio,
 ElevenLabs, stronger docs, and a GitHub-ready project layout.
 
-Full comparison, roadmap, proposal, interview answers, and demo ideas are in
-[docs/upwork_alignment.md](/Users/lusheng/tools/PycharmProjects/ai-knowledge-platform/docs/upwork_alignment.md).
+Full comparison, roadmap, proposal, interview answers, and demo ideas are in:
+
+- [Upwork alignment plan](docs/upwork_alignment.md)
 
 ## Architecture
 
@@ -70,6 +71,12 @@ uvicorn app.main:app --reload
 ```
 
 The API is served at `http://localhost:8000`.
+
+Containerized startup:
+
+```bash
+docker compose up --build
+```
 
 Interactive docs are available at:
 
