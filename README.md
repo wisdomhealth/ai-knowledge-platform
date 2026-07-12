@@ -1,25 +1,22 @@
 # AI Knowledge Platform
 
-Production-ready AI backend platform built with FastAPI, PostgreSQL, OpenAI, RAG,
-Google Workspace APIs, web scraping, agent workflows, Twilio, and ElevenLabs.
+Production-ready AI backend built with FastAPI, PostgreSQL, OpenAI, RAG,
+Google Sheets, web scraping, agent workflows, Twilio, and ElevenLabs.
 
-This repository upgrades a Google Drive RAG backend into an enterprise-style AI
-application that maps closely to the requested Upwork job: REST APIs, async
-FastAPI, clean architecture, PostgreSQL schema design, Alembic migrations,
-OpenAI-powered agents, tool execution, Google Sheets, web scraping, and voice AI.
+This repository provides a clean backend foundation for building AI applications
+that combine retrieval, structured workflow automation, external data ingestion,
+and voice interfaces. It keeps the architecture modular so teams can extend the
+platform without rewriting core services.
 
 ## Upwork Match
 
-Baseline match from the described current project: **58%**
+Target match after this architecture upgrade: **95%+**
 
-Target match after the architecture upgrade in this repository: **96%**
-
-The original system already covered FastAPI, REST APIs, Google Drive OAuth/API,
-OpenAI embeddings, ChromaDB, semantic search, question answering over documents,
-Docker/Git posture, and `.env` configuration. The upgrade adds the missing
-production pieces: PostgreSQL, SQLAlchemy, Alembic, Google Sheets, scraping,
-conversation and workflow agents, tool calling, persistent memory, Twilio,
-ElevenLabs, stronger docs, and a GitHub-ready project layout.
+The project demonstrates the core requirements for a production AI backend:
+async FastAPI, REST APIs, PostgreSQL, SQLAlchemy, Alembic migrations, OpenAI
+integrations, RAG, Google Sheets automation, web scraping, conversation agents,
+workflow agents, tool execution, Twilio, ElevenLabs, environment configuration,
+documentation, and a GitHub-ready repository layout.
 
 Full comparison, roadmap, proposal, interview answers, and demo ideas are in:
 
@@ -32,7 +29,7 @@ app/
   api/                 FastAPI routers, versioned endpoints, dependencies
   agents/              Conversation agent, workflow agent, tool registry, memory
   core/                Settings, database, logging
-  integrations/        OpenAI, Google Drive, Google Sheets, scraper, voice vendors
+  integrations/        OpenAI, Google Sheets, scraper, voice vendors
   models/              SQLAlchemy ORM models
   rag/                 Chunking, embeddings, vector store, retrieval service
   repositories/        Database access layer
@@ -50,7 +47,7 @@ tests/                 API and service tests
 - Alembic migrations for users, documents, chunks, conversations, messages,
   agent runs, tool executions, scraped pages, Sheets jobs, and voice sessions.
 - OpenAI chat and embedding integration.
-- Google Drive RAG ingestion and semantic search hooks.
+- RAG services with chunking, vector storage, and retrieval hooks.
 - Google Sheets read and append integration.
 - Async web scraper with HTML extraction and database persistence.
 - Conversation Agent with memory and RAG context.
@@ -88,9 +85,6 @@ Interactive docs are available at:
 | Area | Method | Endpoint |
 | --- | --- | --- |
 | Health | `GET` | `/health` |
-| Google Drive RAG | `POST` | `/api/v1/google-drive/sync` |
-| Google Drive RAG | `POST` | `/api/v1/google-drive/search` |
-| Google Drive RAG | `POST` | `/api/v1/google-drive/ask` |
 | Google Sheets | `POST` | `/api/v1/google-sheets/read` |
 | Google Sheets | `POST` | `/api/v1/google-sheets/append` |
 | Web Scraper | `POST` | `/api/v1/scraper/scrape` |
@@ -105,13 +99,13 @@ Required for a production deployment:
 
 - `DATABASE_URL`
 - `OPENAI_API_KEY`
-- `GOOGLE_CLIENT_ID`
-- `GOOGLE_CLIENT_SECRET`
-- `GOOGLE_REDIRECT_URI`
+
+Required when Google Sheets automation is enabled:
+
+- `GOOGLE_SHEETS_SERVICE_ACCOUNT_FILE`
 
 Optional integrations:
 
-- `GOOGLE_SERVICE_ACCOUNT_FILE`
 - `TWILIO_ACCOUNT_SID`
 - `TWILIO_AUTH_TOKEN`
 - `TWILIO_PHONE_NUMBER`
@@ -165,14 +159,14 @@ workflow execution auditable and easy to debug.
 
 - Use PostgreSQL in all deployed environments.
 - Store secrets in the deployment platform, not in `.env` files.
-- Use separate Google OAuth credentials for development and production.
+- Use separate Google Sheets service accounts for development and production.
 - Put the scraper behind rate limits and domain allowlists for client work.
 - Enable Twilio request validation before public webhook exposure.
 - Send structured logs to the deployment provider or an observability service.
 
 ## Upwork Positioning
 
-This repository is designed to demonstrate exactly what the client asked for:
-an AI backend that is not only a demo, but a clean, extensible platform. It can
-support document RAG, Google Workspace workflows, autonomous tool execution,
-web data ingestion, database-backed memory, and voice AI.
+This repository is designed to demonstrate what an AI automation client expects:
+a clean, extensible backend that is more than a demo. It supports RAG,
+Google Sheets workflows, autonomous tool execution, web data ingestion,
+database-backed memory, and voice AI.

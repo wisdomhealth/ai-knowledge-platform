@@ -7,8 +7,8 @@ Create Date: 2026-07-11
 
 from collections.abc import Sequence
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.dialects import postgresql
 
 revision: str = "202607110001"
@@ -61,11 +61,9 @@ def upgrade() -> None:
         uuid_pk(),
         sa.Column("email", sa.String(length=320), nullable=False),
         sa.Column("full_name", sa.String(length=255), nullable=True),
-        sa.Column("google_subject", sa.String(length=255), nullable=True),
         sa.Column("is_active", sa.Boolean(), server_default=sa.text("true"), nullable=False),
         *timestamps(),
         sa.UniqueConstraint("email", name="uq_users_email"),
-        sa.UniqueConstraint("google_subject", name="uq_users_google_subject"),
     )
     op.create_index("ix_users_email", "users", ["email"])
 

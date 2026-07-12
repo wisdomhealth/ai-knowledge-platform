@@ -1,3 +1,5 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Depends
 
 from app.api.deps import get_agent_service
@@ -15,7 +17,7 @@ router = APIRouter()
 @router.post("/conversation", response_model=ConversationResponse)
 async def conversation_agent(
     payload: ConversationRequest,
-    service: AgentService = Depends(get_agent_service),
+    service: Annotated[AgentService, Depends(get_agent_service)],
 ) -> ConversationResponse:
     return await service.conversation(payload)
 
@@ -23,6 +25,6 @@ async def conversation_agent(
 @router.post("/workflow", response_model=WorkflowResponse)
 async def workflow_agent(
     payload: WorkflowRequest,
-    service: AgentService = Depends(get_agent_service),
+    service: Annotated[AgentService, Depends(get_agent_service)],
 ) -> WorkflowResponse:
     return await service.workflow(payload)

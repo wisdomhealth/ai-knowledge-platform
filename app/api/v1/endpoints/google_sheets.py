@@ -1,3 +1,5 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.api.deps import get_google_sheets_service
@@ -16,7 +18,7 @@ router = APIRouter()
 @router.post("/read", response_model=SheetReadResponse)
 async def read_sheet_range(
     payload: SheetReadRequest,
-    service: GoogleSheetsService = Depends(get_google_sheets_service),
+    service: Annotated[GoogleSheetsService, Depends(get_google_sheets_service)],
 ) -> SheetReadResponse:
     try:
         return await service.read_range(payload)
@@ -30,7 +32,7 @@ async def read_sheet_range(
 @router.post("/append", response_model=SheetAppendResponse)
 async def append_sheet_rows(
     payload: SheetAppendRequest,
-    service: GoogleSheetsService = Depends(get_google_sheets_service),
+    service: Annotated[GoogleSheetsService, Depends(get_google_sheets_service)],
 ) -> SheetAppendResponse:
     try:
         return await service.append_rows(payload)

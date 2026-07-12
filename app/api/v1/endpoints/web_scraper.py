@@ -1,3 +1,5 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Depends
 
 from app.api.deps import get_web_scraper_service
@@ -10,6 +12,6 @@ router = APIRouter()
 @router.post("/scrape", response_model=ScrapeResponse)
 async def scrape_url(
     payload: ScrapeRequest,
-    service: WebScraperService = Depends(get_web_scraper_service),
+    service: Annotated[WebScraperService, Depends(get_web_scraper_service)],
 ) -> ScrapeResponse:
     return await service.scrape(payload)

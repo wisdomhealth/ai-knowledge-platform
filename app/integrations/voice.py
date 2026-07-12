@@ -57,8 +57,5 @@ class TwilioTwiML:
     @staticmethod
     def say(text: str) -> str:
         return (
-            '<?xml version="1.0" encoding="UTF-8"?>'
-            "<Response>"
-            f"<Say>{escape(text)}</Say>"
-            "</Response>"
+            f'<?xml version="1.0" encoding="UTF-8"?><Response><Say>{escape(text)}</Say></Response>'
         )

@@ -19,10 +19,7 @@ class Settings(BaseSettings):
     openai_chat_model: str = "gpt-4o-mini"
     openai_embedding_model: str = "text-embedding-3-small"
 
-    google_client_id: str | None = None
-    google_client_secret: str | None = None
-    google_redirect_uri: str | None = None
-    google_service_account_file: str | None = None
+    google_sheets_service_account_file: str | None = None
 
     chroma_persist_directory: str = "./chroma"
 

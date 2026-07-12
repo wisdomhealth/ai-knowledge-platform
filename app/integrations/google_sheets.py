@@ -22,11 +22,13 @@ class GoogleSheetsClient:
     def _build_service(self) -> Any:
         if service_account is None or build is None:
             raise IntegrationNotConfigured("Google API dependencies are not installed.")
-        if not self.settings.google_service_account_file:
-            raise IntegrationNotConfigured("GOOGLE_SERVICE_ACCOUNT_FILE is required for Sheets.")
+        if not self.settings.google_sheets_service_account_file:
+            raise IntegrationNotConfigured(
+                "GOOGLE_SHEETS_SERVICE_ACCOUNT_FILE is required for Sheets."
+            )
 
         credentials = service_account.Credentials.from_service_account_file(
-            self.settings.google_service_account_file,
+            self.settings.google_sheets_service_account_file,
             scopes=self.scopes,
         )
         return build("sheets", "v4", credentials=credentials, cache_discovery=False)

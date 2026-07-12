@@ -16,11 +16,11 @@ router = APIRouter()
 @router.post("/twilio/inbound")
 async def twilio_inbound(
     call_sid: Annotated[str, Form(alias="CallSid")],
+    voice_service: Annotated[VoiceService, Depends(get_voice_service)],
+    agent_service: Annotated[AgentService, Depends(get_agent_service)],
     from_number: Annotated[str | None, Form(alias="From")] = None,
     to_number: Annotated[str | None, Form(alias="To")] = None,
     speech_result: Annotated[str | None, Form(alias="SpeechResult")] = None,
-    voice_service: VoiceService = Depends(get_voice_service),
-    agent_service: AgentService = Depends(get_agent_service),
 ) -> Response:
     await voice_service.record_twilio_turn(
         call_sid=call_sid,
@@ -47,7 +47,7 @@ async def twilio_inbound(
 @router.post("/synthesize")
 async def synthesize_voice(
     payload: VoiceSynthesisRequest,
-    service: VoiceService = Depends(get_voice_service),
+    service: Annotated[VoiceService, Depends(get_voice_service)],
 ) -> StreamingResponse:
     try:
         audio = await service.synthesize(text=payload.text, voice_id=payload.voice_id)

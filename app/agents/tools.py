@@ -43,7 +43,7 @@ def build_default_tool_registry() -> ToolRegistry:
     registry.register(
         ToolDefinition(
             name="rag.search",
-            description="Search indexed Google Drive and web documents.",
+            description="Search indexed knowledge-base and web documents.",
             parameters={
                 "type": "object",
                 "properties": {
