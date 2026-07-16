@@ -4,6 +4,12 @@ from app.repositories.conversation_repository import ConversationRepository
 
 
 class ConversationMemory:
+    """Load conversation history and convert it into the model message format.
+
+    Constructor arguments:
+        repository: Data access object used to query conversation messages.
+    """
+
     def __init__(self, *, repository: ConversationRepository):
         self.repository = repository
 

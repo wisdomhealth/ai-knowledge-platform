@@ -7,11 +7,18 @@ from app.schemas.agents import ConversationRequest, ConversationResponse, RagSou
 
 
 class ConversationAgent:
+    """Handle user queries with conversation memory and RAG context."""
+
     system_prompt = (
         "You are a production AI backend assistant. Answer clearly, cite available context, "
         "and say when the indexed knowledge base does not contain enough evidence."
     )
 
+    # Constructor arguments:
+    #     repository: Data access object for conversations, messages, and agent runs.
+    #     memory: Memory component that loads recent conversation messages.
+    #     openai_client: Client used to call the OpenAI chat model.
+    #     rag_service: RAG service used to retrieve knowledge-base context.
     def __init__(
         self,
         *,

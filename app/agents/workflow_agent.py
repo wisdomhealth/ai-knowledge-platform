@@ -7,6 +7,14 @@ from app.schemas.agents import WorkflowRequest, WorkflowResponse, WorkflowStep
 
 
 class WorkflowAgent:
+    """Execute workflow tool steps in order and persist results and traces.
+
+    Constructor arguments:
+        repository: Data access object that stores agent runs and tool executions.
+        registry: Tool registry that resolves and executes handlers by name.
+        runtime_context: RAG, web scraping, and Sheets services used by tools.
+    """
+
     def __init__(
         self,
         *,
