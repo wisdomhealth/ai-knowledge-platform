@@ -1,12 +1,15 @@
 import uuid
 from dataclasses import dataclass
+from datetime import UTC, datetime
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.integrations.exceptions import IntegrationNotConfigured
+from app.integrations.exceptions import IndexIncompatible, IntegrationNotConfigured
 from app.integrations.openai_client import OpenAIClient
+from app.models.document import DocumentChunk
 from app.rag.chunking import chunk_text
-from app.rag.vector_store import ChromaVectorStore
+from app.rag.vector_store import ChromaVectorStore, run_vector_operation
 from app.repositories.document_repository import DocumentRepository
 
 
@@ -45,6 +48,14 @@ class RagService:
         checksum: str | None = None,
         metadata: dict | None = None,
     ) -> tuple[uuid.UUID, int]:
+        chunks = await run_vector_operation(chunk_text, text)
+        embeddings: list[list[float]] | None = None
+        if self.openai_client.settings.openai_api_key:
+            await self._prepare_index()
+        try:
+            embeddings = await self.openai_client.embed(chunks) if chunks else None
+        except IntegrationNotConfigured:
+            embeddings = None
         document = await self.documents.create_document(
             source=source,
             title=title,
@@ -55,13 +66,7 @@ class RagService:
             checksum=checksum,
             metadata=metadata,
         )
-        chunks = chunk_text(text)
-        embeddings: list[list[float]] | None = None
-        try:
-            embeddings = await self.openai_client.embed(chunks) if chunks else None
-        except IntegrationNotConfigured:
-            embeddings = None
-
+        document.indexed_at = None
         vector_ids: list[str] = []
         vector_texts: list[str] = []
         vector_metadatas: list[dict] = []
@@ -73,12 +78,18 @@ class RagService:
                 token_count=None,
                 embedding_id=f"{document.id}:{index}",
                 embedding_model=self.openai_client.settings.openai_embedding_model,
-                metadata={"source": source, "title": title},
+                metadata={**(metadata or {}), "source": source, "title": title},
             )
+            chunk_model.embedding_id = str(chunk_model.id)
             vector_ids.append(str(chunk_model.id))
             vector_texts.append(chunk)
             vector_metadatas.append(
                 {
+                    **{
+                        key: value
+                        for key, value in (metadata or {}).items()
+                        if isinstance(value, (str, int, float, bool))
+                    },
                     "document_id": str(document.id),
                     "chunk_id": str(chunk_model.id),
                     "title": title,
@@ -86,6 +97,8 @@ class RagService:
                 }
             )
 
+        document_id = document.id
+        await self.session.commit()
         if embeddings:
             await self.vector_store.add_texts(
                 ids=vector_ids,
@@ -93,9 +106,13 @@ class RagService:
                 metadatas=vector_metadatas,
                 embeddings=embeddings,
             )
-        return document.id, len(chunks)
+        document.indexed_at = datetime.now(UTC) if embeddings else None
+        await self.session.commit()
+        return document_id, len(chunks)
 
     async def search(self, *, query: str, limit: int = 5) -> list[RagSource]:
+        if self.openai_client.settings.openai_api_key:
+            await self._prepare_index()
         query_embedding: list[float] | None = None
         try:
             embeddings = await self.openai_client.embed([query])
@@ -127,7 +144,7 @@ class RagService:
             ]
 
         chunks = await self.documents.search_chunks(query, limit=limit)
-        return [
+        sources = [
             RagSource(
                 document_id=chunk.document_id,
                 chunk_id=chunk.id,
@@ -137,3 +154,23 @@ class RagService:
             )
             for chunk in chunks
         ]
+        await self.session.commit()
+        return sources
+
+    async def _prepare_index(self) -> None:
+        ids = await self.vector_store.legacy_ids()
+        evidence: dict[str, str | None] = {}
+        for offset in range(0, len(ids), 500):
+            try:
+                batch = [uuid.UUID(item) for item in ids[offset : offset + 500]]
+            except ValueError as exc:
+                raise IndexIncompatible("Index incompatible: unknown legacy chunk IDs.") from exc
+            rows = await self.session.execute(
+                select(DocumentChunk.id, DocumentChunk.embedding_model).where(
+                    DocumentChunk.id.in_(batch)
+                )
+            )
+            evidence.update({str(row.id): row.embedding_model for row in rows})
+        # No write transaction spans embedding or vector-store operations.
+        await self.session.commit()
+        await self.vector_store.ensure_compatible(evidence)

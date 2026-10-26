@@ -19,6 +19,10 @@ class Settings(BaseSettings):
     openai_chat_model: str = "gpt-4o-mini"
     openai_embedding_model: str = "text-embedding-3-small"
 
+    execution_timeout_seconds: float = Field(default=120, gt=0)
+    call_timeout_seconds: float = Field(default=30, gt=0)
+    max_tool_steps: int = Field(default=20, ge=1, le=1000)
+
     google_sheets_service_account_file: str | None = None
 
     chroma_persist_directory: str = "./chroma"

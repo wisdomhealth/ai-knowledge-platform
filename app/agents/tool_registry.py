@@ -2,6 +2,11 @@ from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from typing import Any
 
+from langchain_core.tools import StructuredTool
+from pydantic import BaseModel
+
+from app.integrations.exceptions import ToolNotFound
+
 
 @dataclass(frozen=True)
 class RuntimeContext:
@@ -16,6 +21,7 @@ class RuntimeContext:
     rag_service: Any
     web_scraper_service: Any
     google_sheets_service: Any
+    on_write_confirmed: Callable[[dict[str, Any]], None] | None = None
 
 
 ToolHandler = Callable[[dict[str, Any], RuntimeContext], Awaitable[dict[str, Any]]]
@@ -34,8 +40,12 @@ class ToolDefinition:
 
     name: str
     description: str
-    parameters: dict[str, Any]
+    args_schema: type[BaseModel]
     handler: ToolHandler
+
+    @property
+    def parameters(self) -> dict[str, Any]:
+        return self.args_schema.model_json_schema()
 
 
 class ToolRegistry:
@@ -53,6 +63,12 @@ class ToolRegistry:
     def list_tools(self) -> list[ToolDefinition]:
         return list(self._tools.values())
 
+    def validate(self, name: str, arguments: dict[str, Any]) -> None:
+        tool = self._tools.get(name)
+        if tool is None:
+            raise ToolNotFound("Unknown tool.")
+        tool.args_schema.model_validate(arguments)
+
     async def execute(
         self,
         *,
@@ -63,5 +79,15 @@ class ToolRegistry:
         tool = self._tools.get(name)
         if tool is None:
             available = ", ".join(sorted(self._tools))
-            raise ValueError(f"Unknown tool '{name}'. Available tools: {available}")
-        return await tool.handler(arguments, context)
+            raise ToolNotFound(f"Unknown tool '{name}'. Available tools: {available}")
+
+        async def invoke(**kwargs: Any) -> dict[str, Any]:
+            return await tool.handler(kwargs, context)
+
+        adapter = StructuredTool.from_function(
+            coroutine=invoke,
+            name=tool.name,
+            description=tool.description,
+            args_schema=tool.args_schema,
+        )
+        return await adapter.ainvoke(arguments)

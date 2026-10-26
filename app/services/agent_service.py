@@ -56,6 +56,7 @@ class AgentService:
             repository=self.repository,
             registry=build_default_tool_registry(),
             runtime_context=runtime_context,
+            settings=self.openai_client.settings,
         )
         response = await agent.run(payload)
         await self.session.commit()
