@@ -123,3 +123,64 @@ class ConversationRepository:
         self.session.add(execution)
         await self.session.flush()
         return execution
+
+    async def start_tool_execution(
+        self,
+        *,
+        agent_run_id: uuid.UUID,
+        tool_name: str,
+        arguments: dict[str, Any],
+    ) -> ToolExecution:
+        execution = await self.add_tool_execution(
+            agent_run_id=agent_run_id,
+            tool_name=tool_name,
+            arguments=arguments,
+            status="running",
+        )
+        execution.completed_at = None
+        await self.session.commit()
+        return execution
+
+    async def finish_tool_execution(
+        self,
+        execution_id: uuid.UUID,
+        *,
+        status: str,
+        result: dict[str, Any] | None = None,
+        error: str | None = None,
+    ) -> None:
+        from sqlalchemy import update
+
+        await self.session.execute(
+            update(ToolExecution)
+            .where(ToolExecution.id == execution_id)
+            .values(
+                status=status,
+                result=result or {},
+                error=error,
+                completed_at=datetime.now(UTC),
+            )
+        )
+        await self.session.commit()
+
+    async def finish_run(
+        self,
+        run_id: uuid.UUID,
+        *,
+        status: str,
+        output: dict[str, Any],
+        trace: list[dict[str, Any]],
+    ) -> None:
+        from sqlalchemy import update
+
+        await self.session.execute(
+            update(AgentRun)
+            .where(AgentRun.id == run_id)
+            .values(
+                status=status,
+                output_json=output,
+                trace=trace,
+                completed_at=datetime.now(UTC),
+            )
+        )
+        await self.session.commit()

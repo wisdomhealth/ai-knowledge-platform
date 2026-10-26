@@ -1,3 +1,6 @@
+from collections.abc import Callable
+from typing import Any
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.integrations.google_sheets import GoogleSheetsClient
@@ -37,12 +40,20 @@ class GoogleSheetsService:
             job_id=job.id,
         )
 
-    async def append_rows(self, payload: SheetAppendRequest) -> SheetAppendResponse:
+    async def append_rows(
+        self,
+        payload: SheetAppendRequest,
+        *,
+        on_confirmed: Callable[[dict[str, Any]], None] | None = None,
+    ) -> SheetAppendResponse:
         result = await self.client.append_rows(
             spreadsheet_id=payload.spreadsheet_id,
             range_name=payload.range_name,
             values=payload.values,
         )
+        # Capture remote confirmation synchronously before any database await.
+        if on_confirmed is not None:
+            on_confirmed({"raw_result": result, "audit_status": "not_completed"})
         updates = result.get("updates", {})
         rows = int(updates.get("updatedRows") or len(payload.values))
         job = await self.documents.record_sheet_job(

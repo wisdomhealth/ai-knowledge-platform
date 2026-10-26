@@ -1,6 +1,8 @@
 from typing import Any
 
-from app.agents.tool_registry import RuntimeContext, ToolDefinition, ToolRegistry
+from pydantic import BaseModel, Field
+
+from app.agents.tool_registry import RuntimeContext, ToolDefinition, ToolHandler, ToolRegistry
 from app.schemas.google_sheets import SheetAppendRequest, SheetReadRequest
 from app.schemas.web_scraper import ScrapeRequest
 
@@ -34,68 +36,32 @@ async def sheets_read(arguments: dict[str, Any], context: RuntimeContext) -> dic
 
 
 async def sheets_append(arguments: dict[str, Any], context: RuntimeContext) -> dict[str, Any]:
-    response = await context.google_sheets_service.append_rows(SheetAppendRequest(**arguments))
+    response = await context.google_sheets_service.append_rows(
+        SheetAppendRequest(**arguments), on_confirmed=context.on_write_confirmed
+    )
     return response.model_dump(mode="json")
+
+
+class RagSearchArguments(BaseModel):
+    query: str = Field(min_length=1)
+    limit: int = Field(default=5, ge=1, le=20)
 
 
 def build_default_tool_registry() -> ToolRegistry:
     registry = ToolRegistry()
-    registry.register(
-        ToolDefinition(
-            name="rag.search",
-            description="Search indexed knowledge-base and web documents.",
-            parameters={
-                "type": "object",
-                "properties": {
-                    "query": {"type": "string"},
-                    "limit": {"type": "integer", "default": 5},
-                },
-                "required": ["query"],
-            },
-            handler=rag_search,
+    definitions: list[tuple[str, str, type[BaseModel], ToolHandler]] = [
+        ("rag.search", "Search indexed knowledge-base documents.", RagSearchArguments, rag_search),
+        ("web.scrape", "Fetch and extract a web page.", ScrapeRequest, web_scrape),
+        ("sheets.read", "Read a Google Sheets range.", SheetReadRequest, sheets_read),
+        ("sheets.append", "Append rows to Google Sheets.", SheetAppendRequest, sheets_append),
+    ]
+    for name, description, schema, handler in definitions:
+        registry.register(
+            ToolDefinition(
+                name=name,
+                description=description,
+                args_schema=schema,
+                handler=handler,
+            )
         )
-    )
-    registry.register(
-        ToolDefinition(
-            name="web.scrape",
-            description="Fetch a web page and extract readable text.",
-            parameters={
-                "type": "object",
-                "properties": {"url": {"type": "string", "format": "uri"}},
-                "required": ["url"],
-            },
-            handler=web_scrape,
-        )
-    )
-    registry.register(
-        ToolDefinition(
-            name="sheets.read",
-            description="Read values from a Google Sheets range.",
-            parameters={
-                "type": "object",
-                "properties": {
-                    "spreadsheet_id": {"type": "string"},
-                    "range_name": {"type": "string"},
-                },
-                "required": ["spreadsheet_id", "range_name"],
-            },
-            handler=sheets_read,
-        )
-    )
-    registry.register(
-        ToolDefinition(
-            name="sheets.append",
-            description="Append rows to a Google Sheets range.",
-            parameters={
-                "type": "object",
-                "properties": {
-                    "spreadsheet_id": {"type": "string"},
-                    "range_name": {"type": "string"},
-                    "values": {"type": "array", "items": {"type": "array"}},
-                },
-                "required": ["spreadsheet_id", "range_name", "values"],
-            },
-            handler=sheets_append,
-        )
-    )
     return registry
