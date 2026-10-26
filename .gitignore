@@ -18,3 +18,7 @@ build/
 chroma/
 storage/
 logs/
+/docs/superpowers/plans/2026-10-26-framework-refactor.md
+/docs/superpowers/specs/2026-10-26-framework-refactor-design.md
+/.zshrc
+/migrations/versions/147af8e17da7_describe_change.py
